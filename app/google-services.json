@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "707242554537",
+    "project_id": "firebase-gallendar"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:707242554537:android:bd3f33658595531b",
+        "android_client_info": {
+          "package_name": "com.example.zorzin.gallendar"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "707242554537-eqvtejioemcice5n4l2q6tcdf56d35ij.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.zorzin.gallendar",
+            "certificate_hash": "6F0FDCB6CE1A03151F1C06F63C068C6DC2952ECF"
+          }
+        },
+        {
+          "client_id": "707242554537-loq180llb1nu2vvblltetennlhnqkgcp.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDM_G_FJA_-pE_nIDX_IdWS0TDP05P1Qqg"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 1
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
