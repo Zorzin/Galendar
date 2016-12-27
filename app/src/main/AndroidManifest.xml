@@ -15,6 +15,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".MenuActivity" />
+        <activity
+            android:name=".ShowActivity"
+            android:label="@string/title_activity_show"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity android:name=".AddActivity"></activity>
     </application>
 
 </manifest>

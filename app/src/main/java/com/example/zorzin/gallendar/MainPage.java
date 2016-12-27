@@ -24,7 +24,6 @@ public class MainPage extends AppCompatActivity implements
         OnClickListener{
     private static final String TAG = "SignInActivity";
     private static final int RC_SIGN_IN = 9001;
-
     private GoogleApiClient mGoogleApiClient;
     private TextView mStatusTextView;
     private ProgressDialog mProgressDialog;
@@ -57,18 +56,20 @@ public class MainPage extends AppCompatActivity implements
         // Result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...);
         if (requestCode == RC_SIGN_IN) {
             GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
-            handleSignInResult(result);
+            handleSignInResult(result,data);
         }
     }
 
-    private void handleSignInResult(GoogleSignInResult result) {
+    private void handleSignInResult(GoogleSignInResult result,Intent data) {
         Log.d(TAG, "handleSignInResult:" + result.isSuccess());
         if (result.isSuccess()) {
             // Signed in successfully, show authenticated UI.
             GoogleSignInAccount acct = result.getSignInAccount();
             //here add new activity
-
+            Intent intent = new Intent(this,MenuActivity.class);
+            intent.putExtras(data);
             updateUI(true);
+            startActivity(intent);
         } else {
             // Signed out, show unauthenticated UI.
             updateUI(false);
@@ -109,7 +110,6 @@ public class MainPage extends AppCompatActivity implements
 
     @Override
     public void onClick(View v) {
-        Log.d("tag", String.valueOf(v.getId()));
         switch (v.getId()) {
             case R.id.sign_in_button:
                 signIn();
