@@ -14,6 +14,8 @@ public class MenuActivity extends AppCompatActivity {
 
     private GoogleSignInAccount acct;
     public final static String ID = "";
+
+    public final static String NAME = "";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -33,6 +35,7 @@ public class MenuActivity extends AppCompatActivity {
     public void onShow(View view) {
         Intent intent = new Intent(this,ShowActivity.class);
         intent.putExtra(ID,acct.getId());
+        intent.putExtra(NAME,acct.getEmail());
         startActivity(intent);
     }
 
