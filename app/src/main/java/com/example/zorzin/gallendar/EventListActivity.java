@@ -1,5 +1,20 @@
 package com.example.zorzin.gallendar;
 
+import android.content.Context;
+import android.content.Intent;
+import android.icu.text.RelativeDateTimeFormatter;
+import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
+import android.text.format.DateFormat;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TextView;
 import android.accounts.AccountManager;
 import android.app.Dialog;
 import android.app.ProgressDialog;
@@ -9,7 +24,6 @@ import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
-import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.FragmentActivity;
@@ -59,18 +73,35 @@ import com.google.api.services.calendar.model.Events;
 
 
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import pub.devrel.easypermissions.AfterPermissionGranted;
 import pub.devrel.easypermissions.EasyPermissions;
 
+import com.example.zorzin.gallendar.dummy.DummyContent;
 
+import java.util.List;
 
+/**
+ * An activity representing a list of Events. This activity
+ * has different presentations for handset and tablet-size devices. On
+ * handsets, the activity presents a list of items, which when touched,
+ * lead to a {@link EventDetailActivity} representing
+ * item details. On tablets, the activity presents the list of items and
+ * item details side-by-side using two vertical panes.
+ */
+public class EventListActivity extends AppCompatActivity implements EasyPermissions.PermissionCallbacks{
 
-public class ShowActivity extends AppCompatActivity implements EasyPermissions.PermissionCallbacks {
-
+    /**
+     * Whether or not the activity is in two-pane mode, i.e. running on a tablet
+     * device.
+     */
+    private boolean mTwoPane;
     GoogleAccountCredential mCredential;
     private Button mCallApiButton;
 
@@ -83,22 +114,152 @@ public class ShowActivity extends AppCompatActivity implements EasyPermissions.P
     private static final String PREF_ACCOUNT_NAME = "accountName";
     private static final String[] SCOPES = { CalendarScopes.CALENDAR_READONLY };
 
-    private SectionsPagerAdapter mSectionsPagerAdapter;
-
     private ViewPager mViewPager;
     private static TextView mTextView;
     private static List<Event> items;
     ProgressDialog mProgress;
-    private ViewPager.SimpleOnPageChangeListener mOnPageChangeListener = null;
+
+
 
     @Override
-    public void onPermissionsGranted(int requestCode, List<String> list) {
-        // Do nothing.
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_event_list);
+
+        mProgress = new ProgressDialog(this);
+        mProgress.setMessage("Loading...");
+
+
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        toolbar.setTitle(getTitle());
+//
+//        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+//        fab.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+//                        .setAction("Action", null).show();
+//            }
+//        });
+
+        Intent intent = getIntent();
+        String name = intent.getStringExtra(MenuActivity.NAME);
+        GetEvents(name);
+
+        View recyclerView = findViewById(R.id.event_list);
+        assert recyclerView != null;
+        setupRecyclerView((RecyclerView) recyclerView);
+
+        if (findViewById(R.id.event_detail_container) != null) {
+            // The detail container view will be present only in the
+            // large-screen layouts (res/values-w900dp).
+            // If this view is present, then the
+            // activity should be in two-pane mode.
+            mTwoPane = true;
+        }
+    }
+
+    private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
+
+        DummyContent.ITEMS.clear();
+        int i=0;
+        if (items!=null)
+        {
+            for (Event event:items)
+            {
+                DummyContent.DummyItem item = DummyContent.createDummyItem(i++,event);
+                DummyContent.addItem(item);
+            }
+        }
+
+        recyclerView.setAdapter(new SimpleItemRecyclerViewAdapter(DummyContent.ITEMS));
+    }
+
+
+
+    public class SimpleItemRecyclerViewAdapter
+            extends RecyclerView.Adapter<SimpleItemRecyclerViewAdapter.ViewHolder> {
+
+        private final List<DummyContent.DummyItem> mValues;
+
+        public SimpleItemRecyclerViewAdapter(List<DummyContent.DummyItem> items) {
+            mValues = items;
+        }
+
+        @Override
+        public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            View view = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.event_list_content, parent, false);
+            return new ViewHolder(view);
+        }
+
+        @Override
+        public void onBindViewHolder(final ViewHolder holder, int position) {
+            holder.mItem = mValues.get(position);
+            holder.mIdView.setText(mValues.get(position).id);
+            holder.mContentView.setText(mValues.get(position).content);
+
+            holder.mView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (mTwoPane) {
+                        Bundle arguments = new Bundle();
+                        arguments.putString(EventDetailFragment.ARG_ITEM_ID, holder.mItem.id);
+                        EventDetailFragment fragment = new EventDetailFragment();
+                        fragment.setArguments(arguments);
+                        getSupportFragmentManager().beginTransaction()
+                                .replace(R.id.event_detail_container, fragment)
+                                .commit();
+                    } else {
+                        Context context = v.getContext();
+                        Intent intent = new Intent(context, EventDetailActivity.class);
+                        intent.putExtra(EventDetailFragment.ARG_ITEM_ID, holder.mItem.id);
+
+                        context.startActivity(intent);
+                    }
+                }
+            });
+        }
+
+        @Override
+        public int getItemCount() {
+            return mValues.size();
+        }
+
+        public class ViewHolder extends RecyclerView.ViewHolder {
+            public final View mView;
+            public final TextView mIdView;
+            public final TextView mContentView;
+            public DummyContent.DummyItem mItem;
+
+            public ViewHolder(View view) {
+                super(view);
+                mView = view;
+                mIdView = (TextView) view.findViewById(R.id.id);
+                mContentView = (TextView) view.findViewById(R.id.content);
+            }
+
+            @Override
+            public String toString() {
+                return super.toString() + " '" + mContentView.getText() + "'";
+            }
+        }
+    }
+
+
+
+    // API STUFF
+
+    @Override
+    public void onPermissionsGranted(int requestCode, List<String> perms) {
+
     }
 
     @Override
-    public void onPermissionsDenied(int requestCode, List<String> list) {
-        // Do nothing.
+    public void onPermissionsDenied(int requestCode, List<String> perms) {
+
     }
 
     @Override
@@ -141,7 +302,7 @@ public class ShowActivity extends AppCompatActivity implements EasyPermissions.P
             final int connectionStatusCode) {
         GoogleApiAvailability apiAvailability = GoogleApiAvailability.getInstance();
         Dialog dialog = apiAvailability.getErrorDialog(
-                ShowActivity.this,
+                EventListActivity.this,
                 connectionStatusCode,
                 REQUEST_GOOGLE_PLAY_SERVICES);
         dialog.show();
@@ -235,137 +396,6 @@ public class ShowActivity extends AppCompatActivity implements EasyPermissions.P
 
 
     }
-    private void UpdateTabs()
-    {
-        mViewPager.post(new Runnable() {
-            @Override
-            public void run() {
-                mOnPageChangeListener.onPageSelected(0);
-            }
-        });
-    }
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-
-
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_show);
-        mProgress = new ProgressDialog(this);
-        mProgress.setMessage("Loading...");
-        Intent intent = getIntent();
-        String name = intent.getStringExtra(MenuActivity.NAME);
-        Log.d("id",String.valueOf(name));
-        GetEvents(name);
-
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        // Create the adapter that will return a fragment for each of the three
-        // primary sections of the activity.
-        mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
-
-        // Set up the ViewPager with the sections adapter.
-        mViewPager = (ViewPager) findViewById(R.id.container);
-        mViewPager.setAdapter(mSectionsPagerAdapter);
-
-
-        mOnPageChangeListener = new ViewPager.SimpleOnPageChangeListener() {
-            @Override
-            public void onPageSelected(int position) {
-                Log.d("log", items.get(position).getSummary());
-                mTextView.setText(items.get(position).getSummary());
-
-            }
-        };
-        mViewPager.addOnPageChangeListener(mOnPageChangeListener);
-
-/*        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });*/
-
-
-    }
-
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_show, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-
-    public static class PlaceholderFragment extends Fragment {
-        private static final String ARG_SECTION_NUMBER = "section_number";
-
-        public PlaceholderFragment() {
-        }
-        public static PlaceholderFragment newInstance(int sectionNumber) {
-            PlaceholderFragment fragment = new PlaceholderFragment();
-            Bundle args = new Bundle();
-            args.putInt(ARG_SECTION_NUMBER, sectionNumber);
-            fragment.setArguments(args);
-            return fragment;
-        }
-
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                                 Bundle savedInstanceState) {
-
-            View rootView = inflater.inflate(R.layout.fragment_show, container, false);
-            TextView textView = (TextView) rootView.findViewById(R.id.section_label);
-            mTextView = textView;
-            textView.setText("Loading");
-            return rootView;
-        }
-    }
-
-    public class SectionsPagerAdapter extends FragmentPagerAdapter {
-
-        public SectionsPagerAdapter(FragmentManager fm) {
-            super(fm);
-        }
-
-        @Override
-        public Fragment getItem(int position) {
-            // getItem is called to instantiate the fragment for the given page.
-            // Return a PlaceholderFragment (defined as a static inner class below).
-            Log.d("logget", String.valueOf(position));
-            return PlaceholderFragment.newInstance(position);
-        }
-
-        @Override
-        public int getCount() {
-            // Show 3 total pages.
-            return 10;
-        }
-
-        @Override
-        public CharSequence getPageTitle(int position) {
-            return null;
-        }
-    }
-
     private class MakeRequestTask extends AsyncTask<Void, Void, List<String>> {
         private com.google.api.services.calendar.Calendar mService = null;
         private Exception mLastError = null;
@@ -419,20 +449,22 @@ public class ShowActivity extends AppCompatActivity implements EasyPermissions.P
                 eventStrings.add(
                         String.format("%s (%s)", event.getSummary(), start));
             }
-
-            UpdateTabs();
             return eventStrings;
         }
 
 
         @Override
-        protected void onPreExecute() {
+        protected void onPreExecute()
+        {
             mProgress.show();
         }
 
         @Override
         protected void onPostExecute(List<String> output) {
             mProgress.hide();
+            View recyclerView = findViewById(R.id.event_list);
+            assert recyclerView != null;
+            setupRecyclerView((RecyclerView) recyclerView);
             if (output == null || output.size() == 0) {
                 Log.d("log","No results returned.");
             } else {

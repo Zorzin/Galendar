@@ -33,7 +33,7 @@ public class MenuActivity extends AppCompatActivity {
     }
 
     public void onShow(View view) {
-        Intent intent = new Intent(this,ShowActivity.class);
+        Intent intent = new Intent(this,EventListActivity.class);
         intent.putExtra(ID,acct.getId());
         intent.putExtra(NAME,acct.getEmail());
         startActivity(intent);

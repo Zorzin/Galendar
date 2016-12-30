@@ -15,6 +15,7 @@
         <activity android:name=".MainPage">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -23,7 +24,20 @@
         <activity
             android:name=".ShowActivity"
             android:label="@string/title_activity_show"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".EventListActivity"
+            android:label="@string/title_event_list"
             android:theme="@style/AppTheme.NoActionBar"></activity>
+        <activity
+            android:name=".EventDetailActivity"
+            android:label="@string/title_event_detail"
+            android:parentActivityName=".EventListActivity"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.example.zorzin.gallendar.EventListActivity" />
+        </activity>
     </application>
 
 </manifest>
