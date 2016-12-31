@@ -51,9 +51,18 @@ public class DummyContent {
     private static String makeDetails(int position, Event event) {
         StringBuilder builder = new StringBuilder();
         builder.append(event.getSummary()).append(position);
+
+        Date date = new Date(event.getStart().getDateTime().getValue());
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String startDate = dateFormat.format(date);
+
+        date = new Date(event.getEnd().getDateTime().getValue());
+        String endDate = dateFormat.format(date);
+
+
         builder.append(
-                "\n" + event.getStart() +
-                "\n" + event.getEnd() +
+                "\n" + startDate +
+                "\n" + endDate +
                 "\n" + event.getStatus() +
                 "\n" + event.getDescription()
 

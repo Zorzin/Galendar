@@ -78,6 +78,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 
 import pub.devrel.easypermissions.AfterPermissionGranted;
@@ -86,6 +87,7 @@ import pub.devrel.easypermissions.EasyPermissions;
 import com.example.zorzin.gallendar.dummy.DummyContent;
 
 import java.util.List;
+import java.util.TimeZone;
 
 /**
  * An activity representing a list of Events. This activity
@@ -430,12 +432,14 @@ public class EventListActivity extends AppCompatActivity implements EasyPermissi
          * @throws IOException
          */
         private List<String> getDataFromApi() throws IOException {
-            // List the next 10 events from the primary calendar.
             List<String> eventStrings = new ArrayList<String>();
+            java.util.Calendar cal = GregorianCalendar.getInstance(TimeZone.getDefault());
+            Date date = cal.getTime();
+            DateTime dateTime = new DateTime(date);
             Events events = mService.events().list("primary")
-                    .setMaxResults(10)
                     .setOrderBy("startTime")
                     .setSingleEvents(true)
+                    .setTimeMax(dateTime)
                     .execute();
             items = events.getItems();
 
