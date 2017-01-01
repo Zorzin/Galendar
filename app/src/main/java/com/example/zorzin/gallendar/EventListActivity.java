@@ -436,12 +436,48 @@ public class EventListActivity extends AppCompatActivity implements EasyPermissi
             java.util.Calendar cal = GregorianCalendar.getInstance(TimeZone.getDefault());
             Date date = cal.getTime();
             DateTime dateTime = new DateTime(date);
-            Events events = mService.events().list("primary")
+            Events futureevents = mService.events().list("primary")
                     .setOrderBy("startTime")
                     .setSingleEvents(true)
-                    .setTimeMax(dateTime)
+                    .setTimeMin(dateTime)
                     .execute();
-            items = events.getItems();
+
+            Events presentevents = mService.events().list("primary")
+                    .setOrderBy("startTime")
+                    .setSingleEvents(true)
+                    .execute();
+            List<Event> futureeventsItems = futureevents.getItems();
+            List<Event> presenteventsItems = presentevents.getItems();
+
+            java.util.Calendar localCalendar = GregorianCalendar.getInstance(TimeZone.getDefault());
+            Date currentTime = localCalendar.getTime();
+            for (int i =0;i<presenteventsItems.size();i++)
+            {
+                Event curEvent = presenteventsItems.get(i);
+                DateTime end = curEvent.getEnd().getDateTime();
+                if(end==null)
+                {
+                    end = curEvent.getEnd().getDate();
+                }
+                Date enddate = new Date(end.getValue());
+
+                if (enddate.compareTo(currentTime)<0)
+                {
+                    presenteventsItems.remove(i);
+                    i--;
+                }
+            }
+
+            for (Event event: presenteventsItems)
+            {
+                if (!futureeventsItems.contains(event))
+                {
+                    futureeventsItems.add(event);
+                }
+            }
+
+
+            items = futureeventsItems;
 
             for (Event event : items) {
                 DateTime start = event.getStart().getDateTime();

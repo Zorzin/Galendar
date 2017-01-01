@@ -42,7 +42,16 @@ public class DummyContent {
     }
 
     public static DummyItem createDummyItem(int position, Event event) {
-        Date date = new Date(event.getStart().getDateTime().getValue());
+        Date date = null;
+        if (event.getStart().getDateTime()!=null)
+        {
+            date = new Date(event.getStart().getDateTime().getValue());
+        }
+        else
+        {
+            date = new Date(event.getStart().getDate().getValue());
+        }
+
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String startDate = dateFormat.format(date);
         return new DummyItem(String.valueOf(position), event.getSummary() + " " + startDate, makeDetails(position,event));
@@ -52,11 +61,27 @@ public class DummyContent {
         StringBuilder builder = new StringBuilder();
         builder.append(event.getSummary()).append(position);
 
-        Date date = new Date(event.getStart().getDateTime().getValue());
+        Date date = null;
+
+        if (event.getStart().getDateTime()!=null)
+        {
+            date = new Date(event.getStart().getDateTime().getValue());
+        }
+        else
+        {
+            date = new Date(event.getStart().getDate().getValue());
+        }
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String startDate = dateFormat.format(date);
 
-        date = new Date(event.getEnd().getDateTime().getValue());
+        if (event.getEnd().getDateTime()!=null)
+        {
+            date = new Date(event.getEnd().getDateTime().getValue());
+        }
+        else
+        {
+            date = new Date(event.getEnd().getDate().getValue());
+        }
         String endDate = dateFormat.format(date);
 
 
