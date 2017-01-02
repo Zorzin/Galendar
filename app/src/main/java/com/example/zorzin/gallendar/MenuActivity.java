@@ -48,6 +48,7 @@ public class MenuActivity extends AppCompatActivity {
     public void onAdd(View view) {
         Intent intent = new Intent(this,AddActivity.class);
         intent.putExtra(ID,acct.getId());
+        intent.putExtra(NAME,acct.getEmail());
         startActivity(intent);
     }
 }
