@@ -2,6 +2,7 @@ package com.example.zorzin.gallendar;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -40,8 +41,12 @@ import com.google.api.services.calendar.model.Events;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.LinkedList;
 import java.util.List;
 import pub.devrel.easypermissions.AfterPermissionGranted;
 import pub.devrel.easypermissions.EasyPermissions;
@@ -74,6 +79,9 @@ public class EventListActivity extends AppCompatActivity implements EasyPermissi
     private static final String BUTTON_TEXT = "Call Google Calendar API";
     private static final String PREF_ACCOUNT_NAME = "accountName";
     private static final String[] SCOPES = { CalendarScopes.CALENDAR_READONLY };
+    public static final String EventID ="";
+    public static final String NAME ="";
+    private static String name="";
 
     private ViewPager mViewPager;
     private static TextView mTextView;
@@ -81,9 +89,16 @@ public class EventListActivity extends AppCompatActivity implements EasyPermissi
     ProgressDialog mProgress;
 
 
+    @Override
+    protected void onResume()
+    {
+        super.onResume();
+        GetEvents(name);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_event_list);
 
@@ -106,7 +121,7 @@ public class EventListActivity extends AppCompatActivity implements EasyPermissi
         });
 
         Intent intent = getIntent();
-        String name = intent.getStringExtra(MenuActivity.NAME);
+        name = intent.getStringExtra(MenuActivity.NAME);
         GetEvents(name);
 
         View recyclerView = findViewById(R.id.event_list);
@@ -134,7 +149,12 @@ public class EventListActivity extends AppCompatActivity implements EasyPermissi
                 DummyContent.addItem(item);
             }
         }
-
+        Collections.sort(DummyContent.ITEMS, new Comparator<DummyContent.DummyItem>(){
+            public int compare(DummyContent.DummyItem emp1, DummyContent.DummyItem emp2) {
+                // ## Ascending order
+                return emp1.getStart().compareTo(emp2.getStart());
+            }
+        });
         recyclerView.setAdapter(new SimpleItemRecyclerViewAdapter(DummyContent.ITEMS));
     }
 
@@ -176,8 +196,12 @@ public class EventListActivity extends AppCompatActivity implements EasyPermissi
                     } else {
                         Context context = v.getContext();
                         Intent intent = new Intent(context, EventDetailActivity.class);
-                        intent.putExtra(EventDetailFragment.ARG_ITEM_ID, holder.mItem.id);
-
+                        Bundle bundle = new Bundle();
+                        bundle.putString(EventDetailFragment.ARG_ITEM_ID, holder.mItem.id);
+                        bundle.putString("NAME",name);
+                        bundle.putString("EventID",holder.mItem.getEventid());
+                        bundle.putString("ItemID",holder.mItem.id);
+                        intent.putExtras(bundle);
                         context.startActivity(intent);
                     }
                 }
@@ -437,7 +461,6 @@ public class EventListActivity extends AppCompatActivity implements EasyPermissi
 
 
             items = futureeventsItems;
-
             for (Event event : items) {
                 DateTime start = event.getStart().getDateTime();
                 if (start == null) {
@@ -483,7 +506,7 @@ public class EventListActivity extends AppCompatActivity implements EasyPermissi
                 } else if (mLastError instanceof UserRecoverableAuthIOException) {
                     startActivityForResult(
                             ((UserRecoverableAuthIOException) mLastError).getIntent(),
-                            ShowActivity.REQUEST_AUTHORIZATION);
+                            EventListActivity.REQUEST_AUTHORIZATION);
                 } else {
                     Log.d("log","The following error occurred:\n"
                             + mLastError.getMessage());

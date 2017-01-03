@@ -42,28 +42,28 @@ public class DummyContent {
     }
 
     public static DummyItem createDummyItem(int position, Event event) {
-        Date date = null;
+        Date start,end = null;
         if (event.getStart().getDateTime()!=null)
         {
-            date = new Date(event.getStart().getDateTime().getValue());
+            start = new Date(event.getStart().getDateTime().getValue());
         }
         else
         {
-            date = new Date(event.getStart().getDate().getValue());
+            start = new Date(event.getStart().getDate().getValue());
         }
 
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        String startDate = dateFormat.format(date);
+        String startDate = dateFormat.format(start);
         if (event.getEnd().getDateTime()!=null)
         {
-            date = new Date(event.getEnd().getDateTime().getValue());
+            end = new Date(event.getEnd().getDateTime().getValue());
         }
         else
         {
-            date = new Date(event.getEnd().getDate().getValue());
+            end = new Date(event.getEnd().getDate().getValue());
         }
-        String endDate = dateFormat.format(date);
-        return new DummyItem(String.valueOf(position), event.getSummary() + " " + startDate, makeDetails(position,event), event.getSummary(), event.getDescription(), startDate, endDate, event.getLocation());
+        String endDate = dateFormat.format(end);
+        return new DummyItem(String.valueOf(position), event.getSummary() + " " + startDate, makeDetails(position,event), event.getSummary(), event.getDescription(), startDate, endDate, event.getLocation(), start, end, event.getId());
     }
 
     private static String makeDetails(int position, Event event) {
@@ -115,21 +115,30 @@ public class DummyContent {
         public String getTitle() {
             return title;
         }
-
         public String getDescription() {
             return description;
         }
-
         public String getStartDate() {
             return startDate;
         }
-
         public String getEndDate() {
             return endDate;
         }
-
         public String getPlace() {
             return place;
+        }
+        public Date getStart() {
+            return start;
+        }
+        public String getEventid() {return eventid; }
+        public void setStart(Date start) {
+            this.start = start;
+        }
+        public Date getEnd() {
+            return end;
+        }
+        public void setEnd(Date end) {
+            this.end = end;
         }
 
         private final String title;
@@ -137,8 +146,11 @@ public class DummyContent {
         private final String startDate;
         private final String endDate;
         private final String place;
+        private Date start;
+        private Date end;
+        private String eventid;
 
-        public DummyItem(String id, String content, String details, String title, String description, String startDate, String endDate, String place) {
+        public DummyItem(String id, String content, String details, String title, String description, String startDate, String endDate, String place, Date start, Date end, String eventid) {
             this.id = id;
             this.content = content;
             this.details = details;
@@ -147,11 +159,16 @@ public class DummyContent {
             this.startDate = startDate;
             this.endDate = endDate;
             this.place = place;
+            this.start = start;
+            this.end = end;
+            this.eventid = eventid;
         }
 
         @Override
         public String toString() {
             return content;
         }
+
+
     }
 }

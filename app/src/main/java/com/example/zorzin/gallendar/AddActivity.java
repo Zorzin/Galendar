@@ -10,6 +10,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
@@ -23,9 +24,11 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.PopupWindow;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.TimePicker;
 
@@ -47,6 +50,7 @@ import com.google.api.services.calendar.model.Events;
 
 import java.io.IOException;
 import java.sql.Time;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -64,11 +68,14 @@ public class AddActivity extends AppCompatActivity implements EasyPermissions.Pe
     Calendar myCalendar = Calendar.getInstance();
     Calendar startCalendar = Calendar.getInstance();
     Calendar endCalendar = Calendar.getInstance();
+    Switch mSwitch;
     Date startDate;
     int StartHour,EndHour,StartMinute,EndMinute,Hour,Minute;
     private com.google.api.services.calendar.Calendar mService;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add);
         mCredential = GoogleAccountCredential.usingOAuth2(
@@ -85,6 +92,25 @@ public class AddActivity extends AppCompatActivity implements EasyPermissions.Pe
                 transport, jsonFactory, mCredential)
                 .setApplicationName("Gallendar")
                 .build();
+
+
+        mSwitch = (Switch)findViewById(R.id.SwitchDay);
+        mSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                TextView end = (TextView) findViewById(R.id.EndTime);
+                TextView start = (TextView) findViewById(R.id.StartTime);
+                if (isChecked)
+                {
+                    start.setVisibility(View.INVISIBLE);
+                    end.setVisibility(View.INVISIBLE);
+                }
+                else
+                {
+                    start.setVisibility(View.VISIBLE);
+                    end.setVisibility(View.VISIBLE);
+                }
+            }
+        });
 
     }
 
@@ -192,12 +218,27 @@ public class AddActivity extends AppCompatActivity implements EasyPermissions.Pe
                         .setDescription(description);
                 DateTime startDateTime = new DateTime(startCalendar.getTime());
                 DateTime endDateTime = new DateTime(endCalendar.getTime());
-                EventDateTime startdate = new EventDateTime()
-                        .setDateTime(startDateTime)
-                        .setTimeZone("Poland");
-                EventDateTime enddate = new EventDateTime()
-                        .setDateTime(endDateTime)
-                        .setTimeZone("Poland");
+                EventDateTime startdate = new EventDateTime();
+                EventDateTime enddate = new EventDateTime();
+                if (!mSwitch.isChecked())
+                {
+                    startdate.setDateTime(startDateTime)
+                            .setTimeZone("Poland");
+                    enddate .setDateTime(endDateTime)
+                            .setTimeZone("Poland");
+                }
+                else
+                {
+                    DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                    String start = dateFormat.format(startCalendar.getTime());
+                    String end = dateFormat.format(endCalendar.getTime());
+                    startDateTime = new DateTime(start);
+                    endDateTime = new DateTime(end);
+                    startdate.setDate(startDateTime)
+                            .setTimeZone("Poland");
+                    enddate .setDate(endDateTime)
+                            .setTimeZone("Poland");
+                }
                 event.setStart(startdate)
                         .setEnd(enddate);
                 Event.Reminders reminders = new Event.Reminders()

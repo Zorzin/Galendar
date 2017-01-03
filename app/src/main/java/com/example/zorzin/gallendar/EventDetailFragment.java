@@ -1,6 +1,7 @@
 package com.example.zorzin.gallendar;
 
 import android.app.Activity;
+import android.content.pm.ActivityInfo;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -49,7 +50,8 @@ public class EventDetailFragment extends Fragment {
             Activity activity = this.getActivity();
             CollapsingToolbarLayout appBarLayout = (CollapsingToolbarLayout) activity.findViewById(R.id.toolbar_layout);
             if (appBarLayout != null) {
-                appBarLayout.setTitle(mItem.content);
+
+                appBarLayout.setTitle(mItem.getTitle());
             }
         }
     }
@@ -76,4 +78,6 @@ public class EventDetailFragment extends Fragment {
 
         return rootView;
     }
+
+
 }

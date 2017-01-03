@@ -34,6 +34,17 @@
 
     </android.support.design.widget.AppBarLayout>
 
+    <android.support.design.widget.FloatingActionButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:clickable="true"
+        app:fabSize="mini"
+        app:srcCompat="@android:drawable/ic_delete"
+        android:id="@+id/fab"
+        app:layout_anchor="@+id/event_detail_container"
+        app:layout_anchorGravity="top|right"
+        android:layout_gravity="center_vertical|center_horizontal" />
+
     <android.support.v4.widget.NestedScrollView
         android:id="@+id/event_detail_container"
         android:layout_width="match_parent"

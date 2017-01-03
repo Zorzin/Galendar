@@ -22,10 +22,6 @@
         <activity android:name=".MenuActivity" />
         <activity android:name=".AddActivity" />
         <activity
-            android:name=".ShowActivity"
-            android:label="@string/title_activity_show"
-            android:theme="@style/AppTheme.NoActionBar" />
-        <activity
             android:name=".EventListActivity"
             android:label="@string/title_event_list"
             android:theme="@style/AppTheme.NoActionBar"></activity>

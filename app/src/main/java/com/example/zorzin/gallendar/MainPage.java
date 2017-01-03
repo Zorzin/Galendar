@@ -2,6 +2,7 @@ package com.example.zorzin.gallendar;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -19,6 +20,8 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 
+import java.util.Objects;
+
 public class MainPage extends AppCompatActivity implements
         GoogleApiClient.OnConnectionFailedListener,
         OnClickListener{
@@ -29,6 +32,7 @@ public class MainPage extends AppCompatActivity implements
     private ProgressDialog mProgressDialog;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_page);
 
@@ -47,6 +51,15 @@ public class MainPage extends AppCompatActivity implements
 
 
         findViewById(R.id.sign_in_button).setOnClickListener(this);
+//        Intent intent = getIntent();
+//        if (intent!=null)
+//        {
+//            String logout = intent.getStringExtra(MenuActivity.LOGOUT);
+//            if (Objects.equals(logout, "TRUE"))
+//            {
+//                signOut();
+//            }
+//        }
     }
 
 
