@@ -21,9 +21,14 @@ public class MenuActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_menu);
 
+
         Intent intent = getIntent();
+
         GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(intent);
-         acct = result.getSignInAccount();
+        if (result!=null)
+        {
+            acct = result.getSignInAccount();
+        }
         //String personName = acct.getDisplayName();
         //String personGivenName = acct.getGivenName();
         //String personFamilyName = acct.getFamilyName();

@@ -54,7 +54,16 @@ public class DummyContent {
 
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String startDate = dateFormat.format(date);
-        return new DummyItem(String.valueOf(position), event.getSummary() + " " + startDate, makeDetails(position,event));
+        if (event.getEnd().getDateTime()!=null)
+        {
+            date = new Date(event.getEnd().getDateTime().getValue());
+        }
+        else
+        {
+            date = new Date(event.getEnd().getDate().getValue());
+        }
+        String endDate = dateFormat.format(date);
+        return new DummyItem(String.valueOf(position), event.getSummary() + " " + startDate, makeDetails(position,event), event.getSummary(), event.getDescription(), startDate, endDate, event.getLocation());
     }
 
     private static String makeDetails(int position, Event event) {
@@ -103,10 +112,41 @@ public class DummyContent {
         public final String content;
         public final String details;
 
-        public DummyItem(String id, String content, String details) {
+        public String getTitle() {
+            return title;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public String getStartDate() {
+            return startDate;
+        }
+
+        public String getEndDate() {
+            return endDate;
+        }
+
+        public String getPlace() {
+            return place;
+        }
+
+        private final String title;
+        private final String description;
+        private final String startDate;
+        private final String endDate;
+        private final String place;
+
+        public DummyItem(String id, String content, String details, String title, String description, String startDate, String endDate, String place) {
             this.id = id;
             this.content = content;
             this.details = details;
+            this.title = title;
+            this.description = description;
+            this.startDate = startDate;
+            this.endDate = endDate;
+            this.place = place;
         }
 
         @Override

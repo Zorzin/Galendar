@@ -10,32 +10,44 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.example.zorzin.gallendar.MenuActivity">
 
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:text="Galendar"
+        android:gravity="center"
+        android:layout_above="@+id/add"
+        android:fontFamily="serif-monospace"
+        android:textSize="70sp" />
+
     <Button
         android:text="Show"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/show"
         android:layout_centerVertical="true"
         android:layout_alignStart="@+id/logout"
-        android:onClick="onShow" />
+        android:onClick="onShow"
+        style="@style/Widget.AppCompat.Button.Colored"/>
 
     <Button
         android:text="LogOut"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/logout"
         android:layout_marginTop="21dp"
         android:layout_below="@+id/show"
         android:layout_alignStart="@+id/add"
-        android:onClick="onLogout" />
+        android:onClick="onLogout"
+        style="@style/Widget.AppCompat.Button.Colored"/>
 
     <Button
         android:text="Add"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/add"
         android:layout_marginBottom="24dp"
         android:layout_above="@+id/show"
         android:layout_centerHorizontal="true"
-        android:onClick="onAdd" />
+        android:onClick="onAdd"
+        style="@style/Widget.AppCompat.Button.Colored" />
 </RelativeLayout>
