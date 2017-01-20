@@ -18,6 +18,7 @@ import android.view.View;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.ActionBar;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import com.example.zorzin.gallendar.dummy.DummyContent;
 import com.google.api.client.extensions.android.http.AndroidHttp;
@@ -44,6 +45,8 @@ import pub.devrel.easypermissions.EasyPermissions;
  * in a {@link EventListActivity}.
  */
 public class EventDetailActivity extends AppCompatActivity implements EasyPermissions.PermissionCallbacks{
+
+    String mException;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -147,11 +150,12 @@ public class EventDetailActivity extends AppCompatActivity implements EasyPermis
                 try {
                     service.events().delete("primary", eventId).execute();
                     DummyContent.ITEMS.remove(itemid);
+                    ShowToast();
 
                 } catch (UserRecoverableAuthIOException e) {
                     startActivityForResult(e.getIntent(), REQUEST_AUTHORIZATION);
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    ShowToastError(e);
                 }
             }
         }).start();
@@ -159,7 +163,28 @@ public class EventDetailActivity extends AppCompatActivity implements EasyPermis
         progressDialog.hide();
 
     }
+    private void ShowToast()
+    {
+        runOnUiThread(new Runnable() {
+            public void run() {
+                Toast toast = Toast.makeText(getBaseContext(), "Event removed", Toast.LENGTH_LONG);
+                toast.show();
+            }
+        });
 
+    }
+
+    private void ShowToastError(IOException e)
+    {
+        mException = e.getMessage();
+        runOnUiThread(new Runnable() {
+            public void run() {
+                Toast toast = Toast.makeText(getBaseContext(), mException, Toast.LENGTH_LONG);
+                toast.show();
+            }
+        });
+
+    }
 //API STUFF
 
     GoogleAccountCredential mCredential;

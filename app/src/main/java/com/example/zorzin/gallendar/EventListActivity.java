@@ -24,6 +24,8 @@ import android.support.v4.view.ViewPager;
 import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Button;
+import android.widget.Toast;
+
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.api.client.extensions.android.http.AndroidHttp;
@@ -39,6 +41,8 @@ import com.google.api.services.calendar.CalendarScopes;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.Events;
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -93,7 +97,46 @@ public class EventListActivity extends AppCompatActivity implements EasyPermissi
     protected void onResume()
     {
         super.onResume();
-        GetEvents(name);
+        if (isOnline())
+        {
+            GetEvents(name);
+        }
+        else
+        {
+            ShowToast();
+        }
+    }
+
+    @Override
+    protected  void onRestart()
+    {
+        super.onRestart();
+        if (isOnline())
+        {
+            GetEvents(name);
+        }
+        else
+        {
+            ShowToast();
+        }
+
+    }
+    public boolean isOnline() {
+        ConnectivityManager cm =
+                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = cm.getActiveNetworkInfo();
+        return netInfo != null && netInfo.isConnectedOrConnecting();
+    }
+
+    private void ShowToast()
+    {
+        runOnUiThread(new Runnable() {
+            public void run() {
+                Toast toast = Toast.makeText(getBaseContext(), "No internet connection", Toast.LENGTH_LONG);
+                toast.show();
+            }
+        });
+
     }
 
     @Override
@@ -111,15 +154,6 @@ public class EventListActivity extends AppCompatActivity implements EasyPermissi
         setSupportActionBar(toolbar);
         toolbar.setTitle(getTitle());
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(EventListActivity.this,AddActivity.class);
-                EventListActivity.this.startActivity(intent);
-            }
-        });
-
         Intent intent = getIntent();
         name = intent.getStringExtra(MenuActivity.NAME);
         GetEvents(name);
@@ -129,10 +163,6 @@ public class EventListActivity extends AppCompatActivity implements EasyPermissi
         setupRecyclerView((RecyclerView) recyclerView);
 
         if (findViewById(R.id.event_detail_container) != null) {
-            // The detail container view will be present only in the
-            // large-screen layouts (res/values-w900dp).
-            // If this view is present, then the
-            // activity should be in two-pane mode.
             mTwoPane = true;
         }
     }
@@ -414,53 +444,50 @@ public class EventListActivity extends AppCompatActivity implements EasyPermissi
          * @return List of Strings describing returned events.
          * @throws IOException
          */
-        private List<String> getDataFromApi() throws IOException {
+        private List<String> getDataFromApi() throws IOException, ParseException {
             List<String> eventStrings = new ArrayList<String>();
             java.util.Calendar cal = GregorianCalendar.getInstance(TimeZone.getDefault());
             Date date = cal.getTime();
             DateTime dateTime = new DateTime(date);
-            Events futureevents = mService.events().list("primary")
-                    .setOrderBy("startTime")
-                    .setSingleEvents(true)
-                    .setTimeMin(dateTime)
-                    .execute();
 
-            Events presentevents = mService.events().list("primary")
+            Events allevents = mService.events().list("primary")
                     .setOrderBy("startTime")
                     .setSingleEvents(true)
                     .execute();
-            List<Event> futureeventsItems = futureevents.getItems();
-            List<Event> presenteventsItems = presentevents.getItems();
+            List<Event> allEventsItems = allevents.getItems();
 
             java.util.Calendar localCalendar = GregorianCalendar.getInstance(TimeZone.getDefault());
             Date currentTime = localCalendar.getTime();
-            for (int i =0;i<presenteventsItems.size();i++)
+            for (int i =0;i<allEventsItems.size();i++)
             {
-                Event curEvent = presenteventsItems.get(i);
+                Event curEvent = allEventsItems.get(i);
                 DateTime end = curEvent.getEnd().getDateTime();
+                boolean allday=false;
                 if(end==null)
                 {
+                    allday = true;
                     end = curEvent.getEnd().getDate();
                 }
                 Date enddate = new Date(end.getValue());
 
-                if (enddate.compareTo(currentTime)<0)
+                if (enddate.before(currentTime))
                 {
-                    presenteventsItems.remove(i);
+                    if (allday)
+                    {
+                        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+                        Date endDateWithoutTime = sdf.parse(sdf.format(enddate));
+                        Date currentDateWithoutTime = sdf.parse(sdf.format(currentTime));
+                        if (endDateWithoutTime.compareTo(currentDateWithoutTime)==0)
+                        {
+                            continue;
+                        }
+                    }
+                    allEventsItems.remove(i);
                     i--;
                 }
             }
 
-            for (Event event: presenteventsItems)
-            {
-                if (!futureeventsItems.contains(event))
-                {
-                    futureeventsItems.add(event);
-                }
-            }
-
-
-            items = futureeventsItems;
+            items = allEventsItems;
             for (Event event : items) {
                 DateTime start = event.getStart().getDateTime();
                 if (start == null) {

@@ -10,6 +10,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -84,11 +85,21 @@ public class MainPage extends AppCompatActivity implements
             updateUI(true);
             startActivity(intent);
         } else {
+            ShowToast();
             // Signed out, show unauthenticated UI.
             updateUI(false);
         }
     }
+    private void ShowToast()
+    {
+        runOnUiThread(new Runnable() {
+            public void run() {
+                Toast toast = Toast.makeText(getBaseContext(), "Uneable to login", Toast.LENGTH_LONG);
+                toast.show();
+            }
+        });
 
+    }
     private void signIn() {
         Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
         startActivityForResult(signInIntent, RC_SIGN_IN);

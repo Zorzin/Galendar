@@ -20,7 +20,9 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -31,6 +33,7 @@ import android.widget.PopupWindow;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.TimePicker;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
@@ -69,8 +72,11 @@ public class AddActivity extends AppCompatActivity implements EasyPermissions.Pe
     Calendar startCalendar = Calendar.getInstance();
     Calendar endCalendar = Calendar.getInstance();
     Switch mSwitch;
-    Date startDate;
-    int StartHour,EndHour,StartMinute,EndMinute,Hour,Minute;
+    TextView mStartDate, mEndDate, mStartTime, mEndTime;
+    boolean switchState, mAdded;
+    int Hour,Minute;
+    Thread mThread;
+    String mException;
     private com.google.api.services.calendar.Calendar mService;
 
     @Override
@@ -97,6 +103,7 @@ public class AddActivity extends AppCompatActivity implements EasyPermissions.Pe
         mSwitch = (Switch)findViewById(R.id.SwitchDay);
         mSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+
                 TextView end = (TextView) findViewById(R.id.EndTime);
                 TextView start = (TextView) findViewById(R.id.StartTime);
                 if (isChecked)
@@ -109,9 +116,43 @@ public class AddActivity extends AppCompatActivity implements EasyPermissions.Pe
                     start.setVisibility(View.VISIBLE);
                     end.setVisibility(View.VISIBLE);
                 }
+                switchState = mSwitch.isChecked();
+                CheckDates();
             }
         });
 
+
+        TextWatcher watcher = new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                CheckDates();
+            }
+        };
+
+        mAdded = true;
+        Button addButton = (Button)findViewById(R.id.AddButton);
+        addButton.setClickable(false);
+        startCalendar.set(Calendar.YEAR, 1000);
+        endCalendar.set(Calendar.YEAR, 1000);
+        mStartDate = (TextView)findViewById(R.id.StartDate);
+        mStartTime = (TextView)findViewById(R.id.StartTime);
+        mEndDate = (TextView)findViewById(R.id.EndDate);
+        mEndTime = (TextView)findViewById(R.id.EndTime);
+
+        mStartDate.addTextChangedListener(watcher);
+        mStartTime.addTextChangedListener(watcher);
+        mEndDate.addTextChangedListener(watcher);
+        mEndTime.addTextChangedListener(watcher);
     }
 
     private void updateDateLabel(TextView textView) {
@@ -200,10 +241,12 @@ public class AddActivity extends AppCompatActivity implements EasyPermissions.Pe
     }
 
 
-    private void Add()
-    {
+
+    public void AddEvent(View view) throws InterruptedException {
+
         ProgressDialog progressDialog = new ProgressDialog(this);
         progressDialog.show();
+        final Context context = this;
         new Thread(new Runnable() {
             public void run() {
                 TextView titleView = (TextView) findViewById(R.id.TitleText);
@@ -246,29 +289,81 @@ public class AddActivity extends AppCompatActivity implements EasyPermissions.Pe
                 event.setReminders(reminders);
                 String calendarId = "primary";
                 try {
-                    event = mService.events().insert(calendarId, event).execute();
+                    mService.events().insert(calendarId, event).execute();
+                    ShowDialog();
                 } catch (UserRecoverableAuthIOException e) {
                     startActivityForResult(e.getIntent(), REQUEST_AUTHORIZATION);
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    ShowToast(e);
+                }
+                finally {
+                    return;
                 }
             }
         }).start();
         progressDialog.hide();
+
     }
 
-    public void AddEvent(View view){
-        Add();
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setMessage("Event added");
-        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int id) {
+    private void ShowDialog()
+    {
+
+        runOnUiThread(new Runnable() {
+            public void run() {
+                Toast toast = Toast.makeText(getBaseContext(), "Event added", Toast.LENGTH_LONG);
+                toast.show();
                 finish();
             }
         });
-        AlertDialog dialog = builder.create();
-        dialog.show();
+
+
     }
+
+    private void ShowToast(IOException e)
+    {
+        mException = e.getMessage();
+        runOnUiThread(new Runnable() {
+            public void run() {
+                Toast toast = Toast.makeText(getBaseContext(), mException, Toast.LENGTH_LONG);
+                toast.show();
+            }
+        });
+
+    }
+    //check dates
+
+    private void CheckDates()
+    {
+        Button addButton = (Button)findViewById(R.id.AddButton);
+
+        int startYear = startCalendar.get(Calendar.YEAR);
+        int endYear = endCalendar.get(Calendar.YEAR);
+        if ( startYear == 1000 || endYear == 1000)
+        {
+            addButton.setClickable(false);
+            return;
+        }
+        else if (startCalendar.getTime().after(endCalendar.getTime()))
+        {
+            addButton.setClickable(false);
+            return;
+        }
+        else
+        {
+            if (!switchState)
+            {
+                if (mEndTime.getText() == "" || mStartTime.getText() == "")
+                {
+                    addButton.setClickable(false);
+                    return;
+                }
+            }
+            addButton.setClickable(true);
+            return;
+        }
+
+    }
+
 
     //API STUFF
 
