@@ -19,7 +19,7 @@
             android:scaleType="fitXY"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:srcCompat="@drawable/mainphoto"
+            app:srcCompat="@drawable/andmain"
             android:id="@+id/imageView2" />
 
         <com.google.android.gms.common.SignInButton
